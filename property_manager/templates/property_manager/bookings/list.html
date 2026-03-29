@@ -1,0 +1,83 @@
+{% extends "property_manager/base.html" %}
+{% load pm_extras %}
+{% block title %}Bookings{% endblock %}
+{% block nav_bookings %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Bookings</h2>
+        <div class="breadcrumb">Manage guest bookings and access dates</div>
+    </div>
+    <a href="{% url 'pm:booking_create' %}" class="btn btn-primary">+ New Booking</a>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <a href="{% url 'pm:booking_list' %}" class="filter-btn {% if not status_filter %}active{% endif %}">All</a>
+    <a href="{% url 'pm:booking_list' %}?status=current" class="filter-btn {% if status_filter == 'current' %}active{% endif %}">● Current</a>
+    <a href="{% url 'pm:booking_list' %}?status=upcoming" class="filter-btn {% if status_filter == 'upcoming' %}active{% endif %}">Upcoming</a>
+    <a href="{% url 'pm:booking_list' %}?status=past" class="filter-btn {% if status_filter == 'past' %}active{% endif %}">Past</a>
+    {% if properties.count > 1 %}
+    <select class="form-input" style="width:auto;padding:6px 12px;font-size:0.78rem;" onchange="window.location.href='{% url 'pm:booking_list' %}?status={{ status_filter }}&property='+this.value">
+        <option value="">All Properties</option>
+        {% for prop in properties %}
+        <option value="{{ prop.pk }}" {% if property_filter == prop.pk|stringformat:"d" %}selected{% endif %}>{{ prop.name }}</option>
+        {% endfor %}
+    </select>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if bookings %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Guest</th>
+                    <th>Property</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Status</th>
+                    <th>Docs</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>
+                        <strong>{{ booking.guest_name }}</strong>
+                        {% if booking.guest_email %}<br><span class="text-muted text-xs">{{ booking.guest_email }}</span>{% endif %}
+                    </td>
+                    <td class="text-secondary text-sm">{{ booking.property.name }}</td>
+                    <td class="text-sm">{{ booking.check_in_date|date:"M d, Y" }}</td>
+                    <td class="text-sm">{{ booking.check_out_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if booking.is_current %}
+                            <span class="badge badge-current">● Day {{ booking.stay_day }}/{{ booking.total_nights }}</span>
+                        {% elif booking.check_in_date > today %}
+                            <span class="badge badge-upcoming">Upcoming</span>
+                        {% else %}
+                            <span class="badge badge-past">Past</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-sm">{{ booking.documents.count }} 📄</td>
+                    <td>
+                        <a href="{% url 'pm:booking_detail' pk=booking.pk %}" class="btn btn-ghost btn-sm">View →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <h3>No bookings found</h3>
+        <p>Create a booking to grant guests app access.</p>
+        <a href="{% url 'pm:booking_create' %}" class="btn btn-primary">+ New Booking</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

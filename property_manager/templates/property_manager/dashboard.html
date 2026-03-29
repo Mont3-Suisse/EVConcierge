@@ -1,0 +1,171 @@
+{% extends "property_manager/base.html" %}
+{% load pm_extras %}
+
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Dashboard</h2>
+        <div class="breadcrumb">Welcome back, {{ user.get_full_name|default:user.username }}</div>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon purple">🏠</div>
+        <div>
+            <div class="stat-value">{{ total_properties }}</div>
+            <div class="stat-label">Properties</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">📅</div>
+        <div>
+            <div class="stat-value">{{ active_bookings_count }}</div>
+            <div class="stat-label">Active Bookings</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">🛒</div>
+        <div>
+            <div class="stat-value">{{ pending_orders_count }}</div>
+            <div class="stat-label">Pending Orders</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red">💬</div>
+        <div>
+            <div class="stat-value">{{ escalated_chats_count }}</div>
+            <div class="stat-label">Escalated Chats</div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="grid-2">
+    <!-- Recent Orders -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Recent Orders</h3>
+            <a href="{% url 'pm:order_list' %}" class="btn btn-ghost btn-sm">View all →</a>
+        </div>
+        {% if recent_orders %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Guest</th>
+                        <th>Property</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'pm:order_detail' pk=order.pk %}">
+                                {{ order.booking.guest_name }}
+                            </a>
+                        </td>
+                        <td class="text-secondary text-sm">{{ order.booking.property.name }}</td>
+                        <td><span class="badge {{ order.status|status_badge_class }}">{{ order.get_status_display }}</span></td>
+                        <td class="text-muted text-sm">{{ order.created_at|timesince }} ago</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🛒</div>
+            <h3>No orders yet</h3>
+            <p>Orders from guests will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Upcoming Notifications -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Scheduled Notifications</h3>
+            <a href="{% url 'pm:notification_create' %}" class="btn btn-primary btn-sm">+ Create</a>
+        </div>
+        {% if upcoming_notifications %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Scheduled</th>
+                        <th>Target</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for notif in upcoming_notifications %}
+                    <tr>
+                        <td>{{ notif.title }}</td>
+                        <td class="text-sm">
+                            {% if notif.scheduled_at %}
+                                {{ notif.scheduled_at|date:"M d, H:i" }}
+                            {% else %}
+                                <span class="text-muted">Immediate</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-sm">{{ notif.get_target_type_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🔔</div>
+            <h3>No scheduled notifications</h3>
+            <p>Create push notifications for your guests.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Active Bookings -->
+{% if active_bookings %}
+<div class="card mt-6">
+    <div class="card-header">
+        <h3>Currently Staying</h3>
+        <a href="{% url 'pm:booking_list' %}?status=current" class="btn btn-ghost btn-sm">View all →</a>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Guest</th>
+                    <th>Property</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Day</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in active_bookings %}
+                <tr>
+                    <td>
+                        <a href="{% url 'pm:booking_detail' pk=booking.pk %}">
+                            {{ booking.guest_name }}
+                        </a>
+                    </td>
+                    <td class="text-secondary">{{ booking.property.name }}</td>
+                    <td class="text-sm">{{ booking.check_in_date|date:"M d" }}</td>
+                    <td class="text-sm">{{ booking.check_out_date|date:"M d" }}</td>
+                    <td><span class="badge badge-current">Day {{ booking.stay_day }} of {{ booking.total_nights }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

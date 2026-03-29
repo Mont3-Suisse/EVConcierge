@@ -1,0 +1,120 @@
+{% extends "property_manager/base.html" %}
+{% block title %}{{ property.name }}{% endblock %}
+{% block nav_properties %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{{ property.name }}</h2>
+        <div class="breadcrumb"><a href="{% url 'pm:property_list' %}">Properties</a> / {{ property.name }}</div>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'pm:category_manage' property_pk=property.pk %}" class="btn btn-secondary">📁 Categories &amp; Services</a>
+    </div>
+</div>
+
+<!-- Property Details Form -->
+<div class="card mb-6">
+    <div class="card-header">
+        <h3>Property Details</h3>
+        <span class="badge {% if property.is_active %}badge-active{% else %}badge-past{% endif %}">
+            {% if property.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Property Name</label>
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                <label>Active</label>
+                <div class="form-check">
+                    {{ form.is_active }}
+                    <span class="text-sm">Property is active</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.address.id_for_label }}">Address</label>
+            {{ form.address }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.house_rules.id_for_label }}">House Rules</label>
+            {{ form.house_rules }}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.wifi_network.id_for_label }}">WiFi Network</label>
+                {{ form.wifi_network }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.wifi_password.id_for_label }}">WiFi Password</label>
+                {{ form.wifi_password }}
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.check_in_time.id_for_label }}">Check-in Time</label>
+                {{ form.check_in_time }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.check_out_time.id_for_label }}">Check-out Time</label>
+                {{ form.check_out_time }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.emergency_contacts.id_for_label }}">Emergency Contacts</label>
+            {{ form.emergency_contacts }}
+        </div>
+
+        <!-- Photos Formset -->
+        <h3 class="card-title mt-6">Property Photos</h3>
+        {{ photo_formset.management_form }}
+        {% for pform in photo_formset %}
+        <div class="formset-row">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Image</label>
+                    {{ pform.image }}
+                    {% if pform.instance.image %}
+                    <div class="text-xs text-muted mt-4">Current: {{ pform.instance.image.name }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Caption</label>
+                    {{ pform.caption }}
+                </div>
+                <div class="form-group">
+                    <label>Order</label>
+                    {{ pform.order }}
+                </div>
+                {% if pform.instance.pk %}
+                <div class="form-group">
+                    <label>Delete</label>
+                    <div class="form-check">{{ pform.DELETE }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {{ pform.id }}
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'pm:property_list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

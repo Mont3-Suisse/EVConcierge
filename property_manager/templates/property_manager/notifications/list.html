@@ -1,0 +1,81 @@
+{% extends "property_manager/base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block nav_notifications %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Push Notifications</h2>
+        <div class="breadcrumb">Compose, schedule, and manage notifications for guests</div>
+    </div>
+    <a href="{% url 'pm:notification_create' %}" class="btn btn-primary">+ Compose</a>
+</div>
+
+<div class="card">
+    {% if notifications %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Property</th>
+                    <th>Target</th>
+                    <th>Scheduled</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notif in notifications %}
+                <tr>
+                    <td>
+                        <strong>{{ notif.title }}</strong>
+                        <br><span class="text-muted text-xs">{{ notif.body|truncatechars:60 }}</span>
+                    </td>
+                    <td class="text-secondary text-sm">{{ notif.property.name }}</td>
+                    <td class="text-sm">
+                        {{ notif.get_target_type_display }}
+                        {% if notif.target_booking %}<br><span class="text-muted text-xs">{{ notif.target_booking.guest_name }}</span>{% endif %}
+                    </td>
+                    <td class="text-sm">
+                        {% if notif.scheduled_at %}
+                            {{ notif.scheduled_at|date:"M d, Y H:i" }}
+                        {% else %}
+                            <span class="text-muted">Immediate</span>
+                        {% endif %}
+                        {% if notif.recurring_rule %}
+                        <br><span class="text-muted text-xs">🔄 {{ notif.recurring_rule }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if notif.is_sent %}
+                        <span class="badge badge-sent">✓ Sent</span>
+                        {% else %}
+                        <span class="badge badge-draft">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <a href="{% url 'pm:notification_edit' pk=notif.pk %}" class="btn btn-ghost btn-sm">✏️</a>
+                            <form method="post" action="{% url 'pm:notification_delete' pk=notif.pk %}" style="display:inline;"
+                                  onsubmit="return confirm('Delete this notification?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔔</div>
+        <h3>No notifications yet</h3>
+        <p>Compose push notifications to engage your guests.</p>
+        <a href="{% url 'pm:notification_create' %}" class="btn btn-primary">+ Compose</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

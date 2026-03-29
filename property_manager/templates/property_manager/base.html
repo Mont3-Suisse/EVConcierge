@@ -1,0 +1,101 @@
+{% load static pm_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EV Concierge — Property Manager Dashboard">
+    <title>{% block title %}Dashboard{% endblock %} — EV Concierge</title>
+    <link rel="stylesheet" href="{% static 'property_manager/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Messages (Django messages framework) -->
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        <span>{{ message }}</span>
+        <button class="close-btn" type="button">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Mobile header -->
+<div class="mobile-header">
+    <button class="hamburger" aria-label="Toggle menu">☰</button>
+    <span style="font-weight:700;color:var(--text-heading);">EV Concierge</span>
+    <div></div>
+</div>
+
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1><span>EV</span> Concierge</h1>
+            <div class="subtitle">Property Manager</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Overview</div>
+                <a href="{% url 'pm:dashboard' %}" class="nav-link {% block nav_dashboard %}{% endblock %}">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Management</div>
+                <a href="{% url 'pm:property_list' %}" class="nav-link {% block nav_properties %}{% endblock %}">
+                    <span class="icon">🏠</span> Properties
+                </a>
+                <a href="{% url 'pm:booking_list' %}" class="nav-link {% block nav_bookings %}{% endblock %}">
+                    <span class="icon">📅</span> Bookings
+                </a>
+                <a href="{% url 'pm:order_list' %}" class="nav-link {% block nav_orders %}{% endblock %}">
+                    <span class="icon">🛒</span> Orders
+                    {% block order_badge %}{% endblock %}
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Engagement</div>
+                <a href="{% url 'pm:notification_list' %}" class="nav-link {% block nav_notifications %}{% endblock %}">
+                    <span class="icon">🔔</span> Notifications
+                </a>
+                <a href="{% url 'pm:chat_list' %}" class="nav-link {% block nav_chat %}{% endblock %}">
+                    <span class="icon">💬</span> Chat
+                    {% block chat_badge %}{% endblock %}
+                </a>
+                <a href="{% url 'pm:special_list' %}" class="nav-link {% block nav_specials %}{% endblock %}">
+                    <span class="icon">⭐</span> Specials
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="avatar">{{ user.username|initials }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="user-role">Property Manager</div>
+                </div>
+            </div>
+            <a href="{% url 'logout' %}" class="nav-link" style="margin-top:10px;font-size:0.78rem;">
+                <span class="icon">🚪</span> Sign out
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script src="{% static 'property_manager/js/app.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

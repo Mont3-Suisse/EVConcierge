@@ -1,0 +1,58 @@
+{% extends "property_manager/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block nav_specials %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{{ title }}</h2>
+        <div class="breadcrumb"><a href="{% url 'pm:special_list' %}">Specials</a> / {{ title }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Property</label>
+                {{ form.property }}
+            </div>
+            <div class="form-group">
+                <label>Service Item</label>
+                {{ form.service_item }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Override Title (optional)</label>
+            {{ form.title }}
+            <div class="form-help">Defaults to the service item name</div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Start Date</label>
+                {{ form.start_date }}
+            </div>
+            <div class="form-group">
+                <label>End Date</label>
+                {{ form.end_date }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Linked Notification (optional)</label>
+            {{ form.linked_notification }}
+            <div class="form-help">Link this special to a push notification</div>
+        </div>
+        <div class="form-group">
+            <div class="form-check">
+                {{ form.is_active }}
+                <span class="text-sm">Special is active</span>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Special</button>
+            <a href="{% url 'pm:special_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

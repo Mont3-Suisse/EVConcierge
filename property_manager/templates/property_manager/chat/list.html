@@ -1,0 +1,70 @@
+{% extends "property_manager/base.html" %}
+{% block title %}Chat{% endblock %}
+{% block nav_chat %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Chat Conversations</h2>
+        <div class="breadcrumb">View AI conversations and respond to escalated chats</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <a href="{% url 'pm:chat_list' %}" class="filter-btn {% if not show_escalated %}active{% endif %}">All</a>
+    <a href="{% url 'pm:chat_list' %}?escalated=1" class="filter-btn {% if show_escalated %}active{% endif %}">🔴 Escalated Only</a>
+</div>
+
+<div class="card">
+    {% if conversations %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Guest</th>
+                    <th>Property</th>
+                    <th>Status</th>
+                    <th>Last Message</th>
+                    <th>Started</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conv in conversations %}
+                <tr>
+                    <td><strong>{{ conv.booking.guest_name }}</strong></td>
+                    <td class="text-secondary text-sm">{{ conv.booking.property.name }}</td>
+                    <td>
+                        {% if conv.is_escalated %}
+                        <span class="badge badge-escalated">🔴 Escalated</span>
+                        {% else %}
+                        <span class="badge badge-active">AI Handling</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-sm">
+                        {% if conv.last_message %}
+                        <span class="text-muted">[{{ conv.last_message.get_sender_type_display }}]</span>
+                        {{ conv.last_message.content|truncatechars:40 }}
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted text-sm">{{ conv.created_at|timesince }} ago</td>
+                    <td>
+                        <a href="{% url 'pm:chat_detail' pk=conv.pk %}" class="btn btn-ghost btn-sm">View →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <h3>No conversations{% if show_escalated %} escalated{% endif %}</h3>
+        <p>Guest chat conversations will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

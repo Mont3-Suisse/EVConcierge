@@ -1,0 +1,112 @@
+{% extends "property_manager/base.html" %}
+{% block title %}Edit {{ category.name }}{% endblock %}
+{% block nav_properties %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Edit: {{ category.icon }} {{ category.name }}</h2>
+        <div class="breadcrumb">
+            <a href="{% url 'pm:property_list' %}">Properties</a> /
+            <a href="{% url 'pm:property_detail' pk=property.pk %}">{{ property.name }}</a> /
+            <a href="{% url 'pm:category_manage' property_pk=property.pk %}">Categories</a> /
+            {{ category.name }}
+        </div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Category Details -->
+    <div class="card mb-6">
+        <div class="card-header">
+            <h3>Category Details</h3>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Name</label>
+                {{ cat_form.name }}
+            </div>
+            <div class="form-group">
+                <label>Icon</label>
+                {{ cat_form.icon }}
+            </div>
+            <div class="form-group">
+                <label>Order</label>
+                {{ cat_form.order }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            {{ cat_form.description }}
+        </div>
+        <div class="form-group">
+            <div class="form-check">
+                {{ cat_form.is_active }}
+                <span class="text-sm">Category is active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Items -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Service Items</h3>
+        </div>
+        {{ item_formset.management_form }}
+        <div id="items-formset">
+            {% for iform in item_formset %}
+            <div class="formset-row">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Name</label>
+                        {{ iform.name }}
+                    </div>
+                    <div class="form-group">
+                        <label>Price (€)</label>
+                        {{ iform.price }}
+                    </div>
+                    <div class="form-group">
+                        <label>Order</label>
+                        {{ iform.order }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    {{ iform.description }}
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Photo</label>
+                        {{ iform.photo }}
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check" style="margin-top:20px;">
+                            {{ iform.is_available }}
+                            <span class="text-sm">Available</span>
+                        </div>
+                        <div class="form-check" style="margin-top:8px;">
+                            {{ iform.is_special }}
+                            <span class="text-sm">Featured as Special</span>
+                        </div>
+                    </div>
+                    {% if iform.instance.pk %}
+                    <div class="form-group">
+                        <label>Delete</label>
+                        <div class="form-check">{{ iform.DELETE }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {{ iform.id }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save All Changes</button>
+            <a href="{% url 'pm:category_manage' property_pk=property.pk %}" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

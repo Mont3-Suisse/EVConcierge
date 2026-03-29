@@ -1,0 +1,81 @@
+{% extends "property_manager/base.html" %}
+{% block title %}Specials{% endblock %}
+{% block nav_specials %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Specials &amp; Promotions</h2>
+        <div class="breadcrumb">Feature items on the guest home screen</div>
+    </div>
+    <a href="{% url 'pm:special_create' %}" class="btn btn-primary">+ Create Special</a>
+</div>
+
+<div class="card">
+    {% if specials %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Service Item</th>
+                    <th>Property</th>
+                    <th>Period</th>
+                    <th>Status</th>
+                    <th>Notification</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for special in specials %}
+                <tr>
+                    <td><strong>{{ special.title|default:special.service_item.name }}</strong></td>
+                    <td class="text-secondary text-sm">
+                        {{ special.service_item.name }}
+                        <br><span class="text-muted text-xs">€{{ special.service_item.price }}</span>
+                    </td>
+                    <td class="text-secondary text-sm">{{ special.property.name }}</td>
+                    <td class="text-sm">
+                        {{ special.start_date|date:"M d" }} → {{ special.end_date|date:"M d, Y" }}
+                    </td>
+                    <td>
+                        {% if special.is_current %}
+                        <span class="badge badge-active">● Live</span>
+                        {% elif special.is_active %}
+                        <span class="badge badge-upcoming">Scheduled</span>
+                        {% else %}
+                        <span class="badge badge-past">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-sm">
+                        {% if special.linked_notification %}
+                        <span class="text-muted">🔔 {{ special.linked_notification.title|truncatechars:20 }}</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <a href="{% url 'pm:special_edit' pk=special.pk %}" class="btn btn-ghost btn-sm">✏️</a>
+                            <form method="post" action="{% url 'pm:special_delete' pk=special.pk %}" style="display:inline;"
+                                  onsubmit="return confirm('Delete this special?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">⭐</div>
+        <h3>No specials yet</h3>
+        <p>Create promoted items to feature on the guest home screen.</p>
+        <a href="{% url 'pm:special_create' %}" class="btn btn-primary">+ Create Special</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

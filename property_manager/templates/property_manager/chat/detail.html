@@ -1,0 +1,60 @@
+{% extends "property_manager/base.html" %}
+{% block title %}Chat — {{ conversation.booking.guest_name }}{% endblock %}
+{% block nav_chat %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Chat with {{ conversation.booking.guest_name }}</h2>
+        <div class="breadcrumb">
+            <a href="{% url 'pm:chat_list' %}">Chat</a> / {{ conversation.booking.guest_name }}
+            {% if conversation.is_escalated %}
+            <span class="badge badge-escalated" style="margin-left:8px;">🔴 Escalated</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="text-sm text-secondary">
+        {{ conversation.booking.property.name }} •
+        {{ conversation.booking.check_in_date|date:"M d" }} → {{ conversation.booking.check_out_date|date:"M d" }}
+    </div>
+</div>
+
+<div class="card">
+    <!-- Chat Thread -->
+    <div class="chat-thread">
+        {% for msg in chat_messages %}
+        <div class="chat-msg {{ msg.sender_type }}">
+            <div>{{ msg.content }}</div>
+            <div class="msg-meta">
+                {{ msg.get_sender_type_display }} • {{ msg.created_at|date:"M d, H:i" }}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <h3>No messages yet</h3>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Reply Form -->
+    {% if conversation.is_escalated %}
+    <div style="border-top:1px solid var(--border-color);padding-top:20px;margin-top:16px;">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group mb-0">
+                <label>Reply as Property Manager</label>
+                {{ form.content }}
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Send Reply</button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div style="border-top:1px solid var(--border-color);padding:16px 0 0;margin-top:16px;">
+        <p class="text-muted text-sm">This conversation is being handled by the AI assistant. Replies are enabled when escalated.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "property_manager/base.html" %}
+{% load pm_extras %}
+{% block title %}Order #{{ order.pk }}{% endblock %}
+{% block nav_orders %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Order #{{ order.pk }}</h2>
+        <div class="breadcrumb">
+            <a href="{% url 'pm:order_list' %}">Orders</a> / #{{ order.pk }}
+        </div>
+    </div>
+    <span class="badge {{ order.status|status_badge_class }}" style="font-size:0.85rem;padding:8px 16px;">
+        {{ order.get_status_display }}
+    </span>
+</div>
+
+<div class="grid-2">
+    <!-- Order Items -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Order Items</h3>
+            <span style="font-size:1.2rem;font-weight:800;color:var(--text-heading);">{{ order.total|euro }}</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td><strong>{{ item.name }}</strong></td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.unit_price|euro }}</td>
+                        <td style="font-weight:600;">{{ item.subtotal|euro }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Status & Info -->
+    <div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Guest Info</h3>
+            </div>
+            <p><strong>{{ order.booking.guest_name }}</strong></p>
+            <p class="text-secondary text-sm">{{ order.booking.property.name }}</p>
+            <p class="text-muted text-sm mt-4">
+                {{ order.booking.check_in_date|date:"M d" }} → {{ order.booking.check_out_date|date:"M d, Y" }}
+            </p>
+            <p class="text-muted text-sm">
+                Ordered {{ order.created_at|timesince }} ago
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Update Status</h3>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Status</label>
+                    {{ form.status }}
+                </div>
+                <div class="form-group">
+                    <label>Manager Notes</label>
+                    {{ form.notes }}
+                </div>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

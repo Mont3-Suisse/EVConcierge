@@ -1,0 +1,117 @@
+{% extends "property_manager/base.html" %}
+{% block title %}Categories — {{ property.name }}{% endblock %}
+{% block nav_properties %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Categories &amp; Services</h2>
+        <div class="breadcrumb">
+            <a href="{% url 'pm:property_list' %}">Properties</a> /
+            <a href="{% url 'pm:property_detail' pk=property.pk %}">{{ property.name }}</a> / Categories
+        </div>
+    </div>
+</div>
+
+<!-- Create Category -->
+<div class="card mb-6">
+    <div class="card-header">
+        <h3>Add New Category</h3>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label>Name</label>
+                {{ cat_form.name }}
+            </div>
+            <div class="form-group">
+                <label>Icon</label>
+                {{ cat_form.icon }}
+            </div>
+            <div class="form-group">
+                <label>Order</label>
+                {{ cat_form.order }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            {{ cat_form.description }}
+        </div>
+        <button type="submit" name="create_category" class="btn btn-primary btn-sm">+ Add Category</button>
+    </form>
+</div>
+
+<!-- Existing Categories -->
+{% if categories %}
+{% for cat in categories %}
+<div class="card mb-4 animate-in">
+    <div class="card-header">
+        <h3>
+            <span style="font-size:1.3rem;margin-right:8px;">{{ cat.icon }}</span>
+            {{ cat.name }}
+            {% if not cat.is_active %}<span class="badge badge-past" style="margin-left:8px;">Inactive</span>{% endif %}
+        </h3>
+        <div class="flex gap-2">
+            <a href="{% url 'pm:category_edit' pk=cat.pk %}" class="btn btn-secondary btn-sm">✏️ Edit</a>
+            <form method="post" action="{% url 'pm:category_delete' pk=cat.pk %}" style="display:inline;"
+                  onsubmit="return confirm('Delete category \'{{ cat.name }}\' and all its items?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+            </form>
+        </div>
+    </div>
+
+    {% if cat.items.all %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Price</th>
+                    <th>Available</th>
+                    <th>Special</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cat.items.all %}
+                <tr>
+                    <td>
+                        <strong>{{ item.name }}</strong>
+                        {% if item.description %}<br><span class="text-muted text-xs">{{ item.description|truncatechars:60 }}</span>{% endif %}
+                    </td>
+                    <td>€{{ item.price }}</td>
+                    <td>
+                        {% if item.is_available %}
+                        <span class="badge badge-active">✓ Yes</span>
+                        {% else %}
+                        <span class="badge badge-past">✗ No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.is_special %}
+                        <span class="badge badge-confirmed">⭐ Featured</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted text-sm" style="padding:12px 0;">No items in this category yet. <a href="{% url 'pm:category_edit' pk=cat.pk %}">Add items →</a></p>
+    {% endif %}
+</div>
+{% endfor %}
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-icon">📁</div>
+        <h3>No categories yet</h3>
+        <p>Create your first category above to start adding services.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

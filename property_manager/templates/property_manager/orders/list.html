@@ -1,0 +1,86 @@
+{% extends "property_manager/base.html" %}
+{% load pm_extras %}
+{% block title %}Orders{% endblock %}
+{% block nav_orders %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Orders</h2>
+        <div class="breadcrumb">View and manage incoming guest orders</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <a href="{% url 'pm:order_list' %}" class="filter-btn {% if not status_filter %}active{% endif %}">All</a>
+    <a href="{% url 'pm:order_list' %}?status=pending" class="filter-btn {% if status_filter == 'pending' %}active{% endif %}">⏳ Pending</a>
+    <a href="{% url 'pm:order_list' %}?status=confirmed" class="filter-btn {% if status_filter == 'confirmed' %}active{% endif %}">✓ Confirmed</a>
+    <a href="{% url 'pm:order_list' %}?status=fulfilled" class="filter-btn {% if status_filter == 'fulfilled' %}active{% endif %}">✅ Fulfilled</a>
+    <a href="{% url 'pm:order_list' %}?status=declined" class="filter-btn {% if status_filter == 'declined' %}active{% endif %}">✗ Declined</a>
+</div>
+
+<div class="card">
+    {% if orders %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Guest</th>
+                    <th>Property</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><a href="{% url 'pm:order_detail' pk=order.pk %}">#{{ order.pk }}</a></td>
+                    <td><strong>{{ order.booking.guest_name }}</strong></td>
+                    <td class="text-secondary text-sm">{{ order.booking.property.name }}</td>
+                    <td class="text-sm">{{ order.items.count }} items</td>
+                    <td style="font-weight:600;">{{ order.total|euro }}</td>
+                    <td><span class="badge {{ order.status|status_badge_class }}">{{ order.get_status_display }}</span></td>
+                    <td class="text-muted text-sm">{{ order.created_at|timesince }} ago</td>
+                    <td>
+                        {% if order.status == "pending" %}
+                        <div class="flex gap-2">
+                            <form method="post" action="{% url 'pm:order_update_status' pk=order.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="confirmed">
+                                <button type="submit" class="btn btn-success btn-sm quick-status-btn">✓</button>
+                            </form>
+                            <form method="post" action="{% url 'pm:order_update_status' pk=order.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="declined">
+                                <button type="submit" class="btn btn-danger btn-sm quick-status-btn">✗</button>
+                            </form>
+                        </div>
+                        {% elif order.status == "confirmed" %}
+                        <form method="post" action="{% url 'pm:order_update_status' pk=order.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="fulfilled">
+                            <button type="submit" class="btn btn-success btn-sm quick-status-btn">✅ Fulfill</button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'pm:order_detail' pk=order.pk %}" class="btn btn-ghost btn-sm">View</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🛒</div>
+        <h3>No orders{% if status_filter %} with status "{{ status_filter }}"{% endif %}</h3>
+        <p>Guest orders will appear here as they come in.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
