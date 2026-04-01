@@ -138,7 +138,10 @@ class BookingForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user:
-            self.fields["property"].queryset = Property.objects.filter(owner=user)
+            if user.is_superuser:
+                self.fields["property"].queryset = Property.objects.filter(is_active=True)
+            else:
+                self.fields["property"].queryset = Property.objects.filter(owner=user, is_active=True)
 
 
 class OrderStatusForm(forms.ModelForm):
