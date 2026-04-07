@@ -14,6 +14,7 @@ urlpatterns = [
         template_name="property_manager/auth/login.html",
     ), name="login"),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("api/", include("property_manager.api.urls")),
     path("", include("property_manager.urls")),
 ]
 

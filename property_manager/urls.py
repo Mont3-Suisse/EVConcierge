@@ -60,6 +60,12 @@ urlpatterns = [
     # Feedback
     path("feedback/", views.feedback_list, name="feedback_list"),
 
+    # Owner Offerings (mobile-app sections)
+    path("offerings/", views.offering_list, name="offering_list"),
+    path("offerings/create/", views.offering_create, name="offering_create"),
+    path("offerings/<int:pk>/edit/", views.offering_edit, name="offering_edit"),
+    path("offerings/<int:pk>/delete/", views.offering_delete, name="offering_delete"),
+
     # Specials / Promotions
     path("specials/", views.special_list, name="special_list"),
     path("specials/create/", views.special_create, name="special_create"),

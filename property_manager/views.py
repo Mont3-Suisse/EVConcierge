@@ -15,6 +15,7 @@ from .forms import (
     ExperienceForm,
     InstructionForm,
     OrderStatusForm,
+    OwnerOfferingForm,
     PropertyForm,
     PropertyPhotoFormSet,
     PushNotificationForm,
@@ -33,6 +34,7 @@ from .models import (
     Feedback,
     Instruction,
     Order,
+    OwnerOffering,
     Property,
     PushNotification,
     ServiceItem,
@@ -315,6 +317,87 @@ def experience_delete(request, pk):
 
 
 # ---------------------------------------------------------------------------
+# Owner Offerings (mobile-app sections: Food & Drinks, Experiences, Discover,
+# Wellness, Transport, Add-ons, Today's Specials)
+# ---------------------------------------------------------------------------
+
+def _user_offerings(user):
+    if user.is_superuser:
+        return OwnerOffering.objects.all()
+    return OwnerOffering.objects.filter(owner=user)
+
+
+@login_required
+def offering_list(request):
+    """Show all of the user's offerings, grouped by section."""
+    offerings = _user_offerings(request.user).prefetch_related("properties").order_by("order", "name")
+    by_section = {key: [] for key, _ in OwnerOffering.SECTION_CHOICES}
+    for o in offerings:
+        by_section[o.section].append(o)
+    sections = [
+        {
+            "key": key,
+            "label": label,
+            "items": by_section.get(key, []),
+        }
+        for key, label in OwnerOffering.SECTION_CHOICES
+    ]
+    return render(request, "property_manager/offerings/list.html", {
+        "sections": sections,
+    })
+
+
+@login_required
+def offering_create(request):
+    initial = {}
+    section = request.GET.get("section")
+    if section in dict(OwnerOffering.SECTION_CHOICES):
+        initial["section"] = section
+    if request.method == "POST":
+        form = OwnerOfferingForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.owner = request.user
+            obj.save()
+            form.save_m2m()
+            messages.success(request, f"Offering '{obj.name}' created.")
+            return redirect("pm:offering_list")
+    else:
+        form = OwnerOfferingForm(user=request.user, initial=initial)
+    return render(request, "property_manager/offerings/form.html", {
+        "form": form,
+        "title": "Create Offering",
+    })
+
+
+@login_required
+def offering_edit(request, pk):
+    obj = get_object_or_404(_user_offerings(request.user), pk=pk)
+    if request.method == "POST":
+        form = OwnerOfferingForm(request.POST, request.FILES, instance=obj, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Offering updated.")
+            return redirect("pm:offering_list")
+    else:
+        form = OwnerOfferingForm(instance=obj, user=request.user)
+    return render(request, "property_manager/offerings/form.html", {
+        "form": form,
+        "title": f"Edit: {obj.name}",
+        "offering": obj,
+    })
+
+
+@login_required
+def offering_delete(request, pk):
+    obj = get_object_or_404(_user_offerings(request.user), pk=pk)
+    if request.method == "POST":
+        obj.delete()
+        messages.success(request, "Offering deleted.")
+    return redirect("pm:offering_list")
+
+
+# ---------------------------------------------------------------------------
 # Feedback (read-only)
 # ---------------------------------------------------------------------------
 
@@ -531,9 +614,12 @@ def order_list(request):
 
 @login_required
 def order_detail(request, pk):
-    order = get_object_or_404(
-        Order, pk=pk, booking__property__owner=request.user,
-    )
+    if request.user.is_superuser:
+        order = get_object_or_404(Order, pk=pk)
+    else:
+        order = get_object_or_404(
+            Order, pk=pk, booking__property__owner=request.user,
+        )
     if request.method == "POST":
         form = OrderStatusForm(request.POST, instance=order)
         if form.is_valid():

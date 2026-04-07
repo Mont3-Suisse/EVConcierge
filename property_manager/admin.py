@@ -27,6 +27,7 @@ from .models import (
     InstructionTranslation,
     Order,
     OrderItem,
+    OwnerOffering,
     PromoCode,
     PromoCodeUsage,
     Property,
@@ -358,6 +359,69 @@ admin.site.register(PropertyTranslation)
 admin.site.register(InstructionTranslation)
 admin.site.register(ExperienceTranslation)
 admin.site.register(DailyView)
+
+@admin.register(OwnerOffering)
+class OwnerOfferingAdmin(admin.ModelAdmin):
+    """
+    Per-owner CRUD for the new mobile-app sections (Food & Drinks,
+    Experiences, Discover, Wellness, Transport, Add-ons, Today's Specials).
+    Each offering can be linked to zero or more of the owner's properties.
+    """
+    list_display = ('name', 'section', 'owner', 'price_display',
+                    'property_count', 'is_active')
+    list_filter = ('section', 'is_active', 'owner')
+    list_editable = ('is_active',)
+    search_fields = ('name', 'description')
+    filter_horizontal = ('properties',)
+    fieldsets = (
+        (None, {
+            'fields': ('owner', 'section', 'name', 'description', 'photo',
+                       'price', 'is_active', 'order'),
+        }),
+        ("Availability window (optional, mainly for Today's Specials)", {
+            'fields': ('start_date', 'end_date'),
+            'classes': ('collapse',),
+        }),
+        ('Properties', {
+            'fields': ('properties',),
+            'description': (
+                "Pick the properties this offering is available for. "
+                "Leave empty if it should not appear in any guest app yet."
+            ),
+        }),
+    )
+
+    @admin.display(description='Price')
+    def price_display(self, obj):
+        return f"€{obj.price}" if obj.price is not None else "—"
+
+    @admin.display(description='# properties')
+    def property_count(self, obj):
+        return obj.properties.count()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(owner=request.user)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "properties" and not request.user.is_superuser:
+            kwargs["queryset"] = Property.objects.filter(owner=request.user)
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'owner' and not request.user.is_superuser:
+            from django.contrib.auth import get_user_model
+            kwargs['queryset'] = get_user_model().objects.filter(pk=request.user.pk)
+            kwargs['initial'] = request.user.pk
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.owner_id:
+            obj.owner = request.user
+        super().save_model(request, obj, form, change)
+
 
 # Customize admin site header
 admin.site.site_header = "EV Concierge — Property Manager"

@@ -1,0 +1,79 @@
+{% extends "property_manager/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block nav_offerings %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{{ title }}</h2>
+        <div class="breadcrumb"><a href="{% url 'pm:offering_list' %}">Sections</a> / {{ title }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h4 class="card-title">Basic Information</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.section.id_for_label }}">Section</label>
+                {{ form.section }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Name</label>
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.price.id_for_label }}">Price (€)</label>
+                {{ form.price }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.photo.id_for_label }}">Photo</label>
+                {{ form.photo }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.order.id_for_label }}">Display order</label>
+                {{ form.order }}
+            </div>
+            <div class="form-group">
+                <div class="form-check">{{ form.is_active }} <span class="text-sm">Active</span></div>
+            </div>
+        </div>
+
+        <h4 class="card-title mt-6">Availability window <span class="text-sm text-muted">(optional, used by Today's Specials)</span></h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.start_date.id_for_label }}">Start date</label>
+                {{ form.start_date }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.end_date.id_for_label }}">End date</label>
+                {{ form.end_date }}
+            </div>
+        </div>
+
+        <h4 class="card-title mt-6">Properties</h4>
+        <p class="text-sm text-muted">{{ form.properties.help_text }}</p>
+        <div class="form-group">
+            {{ form.properties }}
+        </div>
+        {% if form.properties.errors %}
+        <div class="text-danger text-sm">{{ form.properties.errors }}</div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'pm:offering_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

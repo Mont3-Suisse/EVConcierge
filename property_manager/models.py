@@ -1302,3 +1302,78 @@ def detect_duplicate_instruction_image(sender, instance, created, **kwargs):
             Thread(target=detect_and_remove_duplicate_images, args=(instance, created)).start()
         except Exception as e:
             print(f"Error in duplicate detection: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Owner Offerings — catalog items shown in the guest mobile app sections
+# ---------------------------------------------------------------------------
+
+class OwnerOffering(models.Model):
+    """
+    A catalog item created by a property owner that can be associated with
+    zero or more of the owner's properties. Each offering belongs to one
+    section, matching a section shown in the guest mobile app:
+    Food & Drinks, Experiences, Discover, Wellness, Transport, Add-ons,
+    and Today's Specials.
+    """
+
+    SECTION_FOOD_DRINKS = 'food_drinks'
+    SECTION_EXPERIENCES = 'experiences'
+    SECTION_DISCOVER = 'discover'
+    SECTION_WELLNESS = 'wellness'
+    SECTION_TRANSPORT = 'transport'
+    SECTION_ADDONS = 'addons'
+    SECTION_SPECIALS = 'specials'
+
+    SECTION_CHOICES = [
+        (SECTION_FOOD_DRINKS, 'Food & Drinks'),
+        (SECTION_EXPERIENCES, 'Experiences'),
+        (SECTION_DISCOVER, 'Discover'),
+        (SECTION_WELLNESS, 'Wellness'),
+        (SECTION_TRANSPORT, 'Transport'),
+        (SECTION_ADDONS, 'Add-ons'),
+        (SECTION_SPECIALS, "Today's Specials"),
+    ]
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='owner_offerings',
+    )
+    section = models.CharField(max_length=32, choices=SECTION_CHOICES)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    photo = models.ImageField(
+        upload_to='owner_offerings/', blank=True, null=True,
+    )
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        null=True, blank=True,
+        help_text="Leave blank for free or info-only items (e.g. Discover entries).",
+    )
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    start_date = models.DateField(
+        null=True, blank=True,
+        help_text="Optional. Used by Today's Specials to define the availability window.",
+    )
+    end_date = models.DateField(null=True, blank=True)
+    properties = models.ManyToManyField(
+        'Property',
+        blank=True,
+        related_name='owner_offerings',
+        help_text=(
+            "Properties this offering is available for. "
+            "Leave empty to keep it hidden from all guest apps."
+        ),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['section', 'order', 'name']
+        verbose_name = "Owner Offering"
+        verbose_name_plural = "Owner Offerings"
+
+    def __str__(self):
+        return f"[{self.get_section_display()}] {self.name}"

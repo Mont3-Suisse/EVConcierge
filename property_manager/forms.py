@@ -13,6 +13,7 @@ from .models import (
     GuestDocument,
     Instruction,
     Order,
+    OwnerOffering,
     Property,
     PropertyPhoto,
     PushNotification,
@@ -258,3 +259,36 @@ class ExperienceForm(forms.ModelForm):
             "referral_code": forms.TextInput(attrs={"class": "form-input", "placeholder": "Referral code"}),
             "ical_url": forms.URLInput(attrs={"class": "form-input", "placeholder": "iCal URL"}),
         }
+
+
+class OwnerOfferingForm(forms.ModelForm):
+    """Form for creating/editing an OwnerOffering. The properties M2M is
+    filtered to the current user's properties via __init__."""
+
+    class Meta:
+        model = OwnerOffering
+        fields = [
+            "section", "name", "description", "photo", "price",
+            "is_active", "order", "start_date", "end_date", "properties",
+        ]
+        widgets = {
+            "section": forms.Select(attrs={"class": "form-input"}),
+            "name": forms.TextInput(attrs={"class": "form-input", "placeholder": "Name"}),
+            "description": forms.Textarea(attrs={"class": "form-input", "rows": 3, "placeholder": "Description shown to guests"}),
+            "photo": forms.ClearableFileInput(attrs={"class": "form-input"}),
+            "price": forms.NumberInput(attrs={"class": "form-input", "step": "0.01", "placeholder": "Leave blank if free / info-only"}),
+            "order": forms.NumberInput(attrs={"class": "form-input", "style": "width:100px"}),
+            "start_date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "end_date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "properties": forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user is not None and not user.is_superuser:
+            self.fields["properties"].queryset = Property.objects.filter(owner=user)
+        self.fields["properties"].required = False
+        self.fields["properties"].help_text = (
+            "Pick the properties this offering should appear on. "
+            "Leave empty to keep it hidden from all guest apps."
+        )
