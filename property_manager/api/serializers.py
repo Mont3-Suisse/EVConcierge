@@ -73,7 +73,7 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'id', 'property', 'guest_name', 'guest_email', 'guest_phone',
-            'check_in_date', 'check_out_date', 'access_code',
+            'check_in_date', 'check_out_date', 'num_guests', 'access_code',
             'language_preference', 'notes', 'is_active',
             'stay_day', 'total_nights', 'total_expenses',
         ]

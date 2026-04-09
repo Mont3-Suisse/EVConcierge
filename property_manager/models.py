@@ -491,6 +491,7 @@ class Booking(models.Model):
     guest_phone = models.CharField(max_length=50, blank=True)
     check_in_date = models.DateField()
     check_out_date = models.DateField()
+    num_guests = models.PositiveIntegerField(default=1)
     access_code = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     language_preference = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default="en")
     notes = models.TextField(blank=True)
@@ -521,7 +522,9 @@ class Booking(models.Model):
 
     @_property
     def total_expenses(self):
-        total = self.orders.aggregate(total=models.Sum("items__subtotal"))["total"]
+        total = self.orders.exclude(status__in=["pending", "declined"]).aggregate(
+            total=models.Sum("items__subtotal")
+        )["total"]
         return total or 0
 
 

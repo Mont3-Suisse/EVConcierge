@@ -122,7 +122,7 @@ class BookingForm(forms.ModelForm):
         model = Booking
         fields = [
             "property", "guest_name", "guest_email", "guest_phone",
-            "check_in_date", "check_out_date",
+            "check_in_date", "check_out_date", "num_guests",
             "language_preference", "notes", "is_active",
         ]
         widgets = {
@@ -131,6 +131,7 @@ class BookingForm(forms.ModelForm):
             "guest_phone": forms.TextInput(attrs={"class": "form-input", "placeholder": "+39 ..."}),
             "check_in_date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
             "check_out_date": forms.DateInput(attrs={"class": "form-input", "type": "date"}),
+            "num_guests": forms.NumberInput(attrs={"class": "form-input", "min": 1}),
             "language_preference": forms.Select(attrs={"class": "form-input"}),
             "notes": forms.Textarea(attrs={"class": "form-input", "rows": 3}),
             "property": forms.Select(attrs={"class": "form-input"}),
