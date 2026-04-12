@@ -522,7 +522,7 @@ class Booking(models.Model):
 
     @_property
     def total_expenses(self):
-        total = self.orders.exclude(status__in=["pending", "declined"]).aggregate(
+        total = self.orders.exclude(status__in=["pending", "declined", "cancelled"]).aggregate(
             total=models.Sum("items__subtotal")
         )["total"]
         return total or 0
@@ -551,6 +551,7 @@ class GuestDocument(models.Model):
 ORDER_STATUS_CHOICES = [
     ("pending", "Pending"), ("confirmed", "Confirmed"),
     ("declined", "Declined"), ("fulfilled", "Fulfilled"),
+    ("cancelled", "Cancelled"),
 ]
 
 

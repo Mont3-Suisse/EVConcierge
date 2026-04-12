@@ -54,8 +54,26 @@
                 <a href="{% url 'pm:experience_list' %}" class="nav-link {% block nav_experiences %}{% endblock %}">
                     <span class="icon">🎯</span> Experiences
                 </a>
-                <a href="{% url 'pm:offering_list' %}" class="nav-link {% block nav_offerings %}{% endblock %}">
-                    <span class="icon">📚</span> Sections
+                <a href="{% url 'pm:offering_section' section='food_drinks' %}" class="nav-link {% block nav_section_food_drinks %}{% endblock %}">
+                    <span class="icon">🍽️</span> Food &amp; Drinks
+                </a>
+                <a href="{% url 'pm:offering_section' section='experiences' %}" class="nav-link {% block nav_section_experiences %}{% endblock %}">
+                    <span class="icon">🎯</span> Experiences
+                </a>
+                <a href="{% url 'pm:offering_section' section='discover' %}" class="nav-link {% block nav_section_discover %}{% endblock %}">
+                    <span class="icon">🧭</span> Discover
+                </a>
+                <a href="{% url 'pm:offering_section' section='wellness' %}" class="nav-link {% block nav_section_wellness %}{% endblock %}">
+                    <span class="icon">🧘</span> Wellness
+                </a>
+                <a href="{% url 'pm:offering_section' section='transport' %}" class="nav-link {% block nav_section_transport %}{% endblock %}">
+                    <span class="icon">🚗</span> Transport
+                </a>
+                <a href="{% url 'pm:offering_section' section='addons' %}" class="nav-link {% block nav_section_addons %}{% endblock %}">
+                    <span class="icon">➕</span> Add-ons
+                </a>
+                <a href="{% url 'pm:offering_section' section='specials' %}" class="nav-link {% block nav_section_specials %}{% endblock %}">
+                    <span class="icon">⭐</span> Today's Specials
                 </a>
                 <a href="{% url 'pm:booking_list' %}" class="nav-link {% block nav_bookings %}{% endblock %}">
                     <span class="icon">📅</span> Bookings

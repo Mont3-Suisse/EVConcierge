@@ -1,0 +1,70 @@
+{% extends "property_manager/base.html" %}
+{% block title %}{{ section_label }}{% endblock %}
+{% block nav_section_food_drinks %}{% if section_key == 'food_drinks' %}active{% endif %}{% endblock %}
+{% block nav_section_experiences %}{% if section_key == 'experiences' %}active{% endif %}{% endblock %}
+{% block nav_section_discover %}{% if section_key == 'discover' %}active{% endif %}{% endblock %}
+{% block nav_section_wellness %}{% if section_key == 'wellness' %}active{% endif %}{% endblock %}
+{% block nav_section_transport %}{% if section_key == 'transport' %}active{% endif %}{% endblock %}
+{% block nav_section_addons %}{% if section_key == 'addons' %}active{% endif %}{% endblock %}
+{% block nav_section_specials %}{% if section_key == 'specials' %}active{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>{{ section_label }}</h2>
+        <div class="breadcrumb">Items shown in the guest mobile app</div>
+    </div>
+    <a href="{% url 'pm:offering_create' %}?section={{ section_key }}" class="btn btn-primary">+ Add Item</a>
+</div>
+
+<div class="card">
+    {% if items %}
+    <table class="table" style="width:100%;">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Properties</th>
+                <th>Window</th>
+                <th>Active</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td><strong>{{ item.name }}</strong>{% if item.description %}<div class="text-sm text-muted">{{ item.description|truncatechars:80 }}</div>{% endif %}</td>
+                <td>{% if item.price is not None %}&euro;{{ item.price }}{% else %}&mdash;{% endif %}</td>
+                <td>
+                    {% for p in item.properties.all %}
+                        <span class="badge">{{ p.name }}</span>
+                    {% empty %}
+                        <span class="text-muted text-sm">&mdash; none &mdash;</span>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if item.start_date or item.end_date %}
+                        {{ item.start_date|default:"&mdash;" }} &rarr; {{ item.end_date|default:"&mdash;" }}
+                    {% else %}
+                        <span class="text-muted text-sm">always</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="status-dot {% if item.is_active %}active{% else %}inactive{% endif %}"></span>
+                </td>
+                <td style="text-align:right;">
+                    <a href="{% url 'pm:offering_edit' pk=item.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form method="post" action="{% url 'pm:offering_delete' pk=item.pk %}" style="display:inline;" onsubmit="return confirm('Delete this offering?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted text-sm" style="margin:0;">No items yet in this section.</p>
+    {% endif %}
+</div>
+{% endblock %}

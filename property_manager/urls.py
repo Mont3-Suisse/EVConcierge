@@ -62,6 +62,7 @@ urlpatterns = [
 
     # Owner Offerings (mobile-app sections)
     path("offerings/", views.offering_list, name="offering_list"),
+    path("offerings/section/<str:section>/", views.offering_section, name="offering_section"),
     path("offerings/create/", views.offering_create, name="offering_create"),
     path("offerings/<int:pk>/edit/", views.offering_edit, name="offering_edit"),
     path("offerings/<int:pk>/delete/", views.offering_delete, name="offering_delete"),

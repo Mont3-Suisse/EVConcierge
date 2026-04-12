@@ -22,6 +22,7 @@ urlpatterns = [
 
     # Orders
     path('v1/bookings/<int:pk>/orders/', views.booking_orders, name='booking_orders'),
+    path('v1/orders/<int:pk>/cancel/', views.cancel_order, name='cancel_order'),
 
     # Documents
     path('v1/bookings/<int:pk>/documents/', views.booking_documents, name='booking_documents'),

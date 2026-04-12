@@ -327,6 +327,17 @@ def _user_offerings(user):
     return OwnerOffering.objects.filter(owner=user)
 
 
+SECTION_ICONS = {
+    'food_drinks': '🍽️',
+    'experiences': '🎯',
+    'discover': '🧭',
+    'wellness': '🧘',
+    'transport': '🚗',
+    'addons': '➕',
+    'specials': '⭐',
+}
+
+
 @login_required
 def offering_list(request):
     """Show all of the user's offerings, grouped by section."""
@@ -348,6 +359,21 @@ def offering_list(request):
 
 
 @login_required
+def offering_section(request, section):
+    """Show offerings for a single section."""
+    section_dict = dict(OwnerOffering.SECTION_CHOICES)
+    if section not in section_dict:
+        from django.http import Http404
+        raise Http404("Unknown section")
+    items = _user_offerings(request.user).filter(section=section).prefetch_related("properties").order_by("order", "name")
+    return render(request, "property_manager/offerings/section.html", {
+        "section_key": section,
+        "section_label": section_dict[section],
+        "items": items,
+    })
+
+
+@login_required
 def offering_create(request):
     initial = {}
     section = request.GET.get("section")
@@ -361,7 +387,7 @@ def offering_create(request):
             obj.save()
             form.save_m2m()
             messages.success(request, f"Offering '{obj.name}' created.")
-            return redirect("pm:offering_list")
+            return redirect("pm:offering_section", section=obj.section)
     else:
         form = OwnerOfferingForm(user=request.user, initial=initial)
     return render(request, "property_manager/offerings/form.html", {
@@ -378,7 +404,7 @@ def offering_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, "Offering updated.")
-            return redirect("pm:offering_list")
+            return redirect("pm:offering_section", section=obj.section)
     else:
         form = OwnerOfferingForm(instance=obj, user=request.user)
     return render(request, "property_manager/offerings/form.html", {
@@ -391,10 +417,11 @@ def offering_edit(request, pk):
 @login_required
 def offering_delete(request, pk):
     obj = get_object_or_404(_user_offerings(request.user), pk=pk)
+    section = obj.section
     if request.method == "POST":
         obj.delete()
         messages.success(request, "Offering deleted.")
-    return redirect("pm:offering_list")
+    return redirect("pm:offering_section", section=section)
 
 
 # ---------------------------------------------------------------------------

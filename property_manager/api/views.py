@@ -306,6 +306,26 @@ def booking_orders(request, pk):
     )
 
 
+@api_view(['POST'])
+def cancel_order(request, pk):
+    """Cancel a pending order."""
+    booking, error = _get_booking_from_request(request)
+    if error:
+        return error
+    try:
+        order = Order.objects.get(pk=pk, booking=booking)
+    except Order.DoesNotExist:
+        return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    if order.status != 'pending':
+        return Response(
+            {'error': 'Only pending orders can be cancelled.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    order.status = 'cancelled'
+    order.save(update_fields=['status', 'updated_at'])
+    return Response(OrderSerializer(order).data)
+
+
 # ─── Documents ───
 
 @api_view(['GET', 'POST'])
