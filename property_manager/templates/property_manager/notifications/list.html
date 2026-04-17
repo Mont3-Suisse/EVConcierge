@@ -56,6 +56,13 @@
                     </td>
                     <td>
                         <div class="flex gap-2">
+                            {% if not notif.is_sent %}
+                            <form method="post" action="{% url 'pm:notification_send' pk=notif.pk %}" style="display:inline;"
+                                  onsubmit="return confirm('Send this notification to guests now?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm" title="Send now">📤 Send</button>
+                            </form>
+                            {% endif %}
                             <a href="{% url 'pm:notification_edit' pk=notif.pk %}" class="btn btn-ghost btn-sm">✏️</a>
                             <form method="post" action="{% url 'pm:notification_delete' pk=notif.pk %}" style="display:inline;"
                                   onsubmit="return confirm('Delete this notification?');">

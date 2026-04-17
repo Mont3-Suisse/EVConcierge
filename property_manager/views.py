@@ -741,6 +741,26 @@ def notification_delete(request, pk):
     return redirect("pm:notification_list")
 
 
+@login_required
+def notification_send(request, pk):
+    if request.user.is_superuser:
+        notif = get_object_or_404(PushNotification, pk=pk)
+    else:
+        notif = get_object_or_404(PushNotification, pk=pk, property__owner=request.user)
+    if request.method == "POST":
+        if notif.is_sent:
+            messages.info(request, f"Notification '{notif.title}' was already sent.")
+        else:
+            notif.is_sent = True
+            notif.sent_at = timezone.now()
+            notif.save(update_fields=["is_sent", "sent_at"])
+            messages.success(request, f"Notification '{notif.title}' sent.")
+    next_url = request.POST.get("next", "")
+    if next_url.startswith("/") and not next_url.startswith("//"):
+        return redirect(next_url)
+    return redirect("pm:notification_list")
+
+
 # ---------------------------------------------------------------------------
 # Chat
 # ---------------------------------------------------------------------------

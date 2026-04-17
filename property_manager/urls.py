@@ -49,6 +49,7 @@ urlpatterns = [
     path("notifications/create/", views.notification_create, name="notification_create"),
     path("notifications/<int:pk>/edit/", views.notification_edit, name="notification_edit"),
     path("notifications/<int:pk>/delete/", views.notification_delete, name="notification_delete"),
+    path("notifications/<int:pk>/send/", views.notification_send, name="notification_send"),
 
     # Chat
     path("chat/", views.chat_list, name="chat_list"),

@@ -6,6 +6,7 @@ for managing the entire property management workflow.
 """
 
 from django.contrib import admin
+from django.utils import timezone
 from django.utils.html import format_html
 
 from .models import (
@@ -285,9 +286,15 @@ class ExperienceAdmin(admin.ModelAdmin):
 
 @admin.register(PushNotification)
 class PushNotificationAdmin(admin.ModelAdmin):
-    list_display = ("title", "property", "target_type", "scheduled_at", "is_sent")
+    list_display = ("title", "property", "target_type", "scheduled_at", "is_sent", "sent_at")
     list_filter = ("property", "is_sent", "target_type")
     search_fields = ("title", "body")
+    actions = ("send_now",)
+
+    @admin.action(description="Send selected notifications now")
+    def send_now(self, request, queryset):
+        updated = queryset.update(is_sent=True, sent_at=timezone.now())
+        self.message_user(request, f"{updated} notification(s) marked as sent.")
 
 
 @admin.register(ChatConversation)

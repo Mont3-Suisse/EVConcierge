@@ -116,6 +116,7 @@
                         <th>Title</th>
                         <th>Scheduled</th>
                         <th>Target</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -130,6 +131,14 @@
                             {% endif %}
                         </td>
                         <td class="text-sm">{{ notif.get_target_type_display }}</td>
+                        <td>
+                            <form method="post" action="{% url 'pm:notification_send' pk=notif.pk %}" style="display:inline;"
+                                  onsubmit="return confirm('Send this notification to guests now?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button type="submit" class="btn btn-primary btn-sm" title="Send now">📤 Send</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
