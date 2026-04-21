@@ -824,6 +824,43 @@ NOTIFICATION_TARGET_CHOICES = [
 ]
 
 
+DEVICE_PLATFORM_CHOICES = [
+    ("android", "Android"),
+    ("ios", "iOS"),
+    ("web", "Web"),
+]
+
+
+class DeviceToken(models.Model):
+    """An FCM registration token belonging to a specific guest booking.
+
+    Tokens are registered by the Flutter app after a booking is authenticated
+    and used by the backend to deliver push notifications via Firebase Cloud
+    Messaging. Each token is unique (FCM tokens are globally unique) and is
+    automatically deactivated when FCM reports it as invalid.
+    """
+
+    booking = models.ForeignKey(
+        Booking, on_delete=models.CASCADE, related_name="device_tokens",
+    )
+    token = models.CharField(max_length=512, unique=True)
+    platform = models.CharField(
+        max_length=10, choices=DEVICE_PLATFORM_CHOICES, default="android",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["booking", "is_active"]),
+        ]
+
+    def __str__(self):
+        return f"{self.platform} token for {self.booking.guest_name}"
+
+
 class PushNotification(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="notifications")
     title = models.CharField(max_length=200)

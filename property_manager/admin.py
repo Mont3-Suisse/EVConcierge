@@ -17,6 +17,7 @@ from .models import (
     ChatMessage,
     CoHostRequest,
     DailyView,
+    DeviceToken,
     Experience,
     ExperienceImage,
     ExperienceTranslation,
@@ -291,10 +292,33 @@ class PushNotificationAdmin(admin.ModelAdmin):
     search_fields = ("title", "body")
     actions = ("send_now",)
 
-    @admin.action(description="Send selected notifications now")
+    @admin.action(description="Send selected notifications now via FCM")
     def send_now(self, request, queryset):
-        updated = queryset.update(is_sent=True, sent_at=timezone.now())
-        self.message_user(request, f"{updated} notification(s) marked as sent.")
+        from .push_service import send_push_notification
+        total_sent = 0
+        for notif in queryset.filter(is_sent=False):
+            notif.is_sent = True
+            notif.sent_at = timezone.now()
+            notif.save(update_fields=["is_sent", "sent_at"])
+            result = send_push_notification(notif)
+            total_sent += result.get("sent", 0)
+        self.message_user(
+            request,
+            f"Sent {queryset.count()} notification(s); "
+            f"{total_sent} FCM message(s) delivered.",
+        )
+
+
+@admin.register(DeviceToken)
+class DeviceTokenAdmin(admin.ModelAdmin):
+    list_display = ("booking", "platform", "is_active", "updated_at", "short_token")
+    list_filter = ("platform", "is_active")
+    search_fields = ("token", "booking__guest_name")
+    readonly_fields = ("created_at", "updated_at")
+
+    @admin.display(description="Token")
+    def short_token(self, obj):
+        return f"{obj.token[:16]}…" if obj.token else ""
 
 
 @admin.register(ChatConversation)

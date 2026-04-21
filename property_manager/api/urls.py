@@ -32,4 +32,8 @@ urlpatterns = [
 
     # Notifications
     path('v1/bookings/<int:pk>/notifications/', views.booking_notifications, name='booking_notifications'),
+
+    # Device tokens (FCM)
+    path('v1/devices/register/', views.register_device_token, name='register_device_token'),
+    path('v1/devices/unregister/', views.unregister_device_token, name='unregister_device_token'),
 ]

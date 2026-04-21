@@ -39,3 +39,5 @@ build/
 .env
 .env.local
 .env.production
+
+evconcierge-900b1-firebase-adminsdk-fbsvc-3e921ba084.json

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -148,3 +149,10 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
 }
+
+# Firebase Cloud Messaging
+# Provide either a file path to the service-account JSON, OR the JSON inline.
+# If neither is set, FCM delivery is skipped (the notification is still stored
+# and the Flutter app's polling fallback will pick it up).
+FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', '/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/evconcierge-900b1-firebase-adminsdk-fbsvc-3e921ba084.json')
+FIREBASE_CREDENTIALS_JSON = os.environ.get('FIREBASE_CREDENTIALS_JSON', '')

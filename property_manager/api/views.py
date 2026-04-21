@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from ..models import (
     Booking, Category, ServiceItem, Order, OrderItem,
     GuestDocument, ChatConversation, ChatMessage,
-    PushNotification, Special, OwnerOffering,
+    PushNotification, Special, OwnerOffering, DeviceToken,
 )
 
 
@@ -405,3 +405,61 @@ def booking_notifications(request, pk):
     return Response(
         NotificationSerializer(notifications, many=True).data
     )
+
+
+# ─── Device Tokens (FCM) ───
+
+_ALLOWED_PLATFORMS = {'android', 'ios', 'web'}
+
+
+@api_view(['POST'])
+def register_device_token(request):
+    """Register an FCM token for the authenticated booking.
+
+    Body: {"token": "<fcm-token>", "platform": "android" | "ios" | "web"}
+    Idempotent: re-registering the same token just refreshes its booking
+    binding and re-activates it.
+    """
+    booking, error = _get_booking_from_request(request)
+    if error:
+        return error
+
+    token = (request.data.get('token') or '').strip()
+    platform = (request.data.get('platform') or 'android').lower()
+    if not token:
+        return Response(
+            {'error': 'token is required'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if platform not in _ALLOWED_PLATFORMS:
+        platform = 'android'
+
+    DeviceToken.objects.update_or_create(
+        token=token,
+        defaults={
+            'booking': booking,
+            'platform': platform,
+            'is_active': True,
+        },
+    )
+    return Response({'status': 'registered'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def unregister_device_token(request):
+    """Mark an FCM token inactive (e.g. on logout).
+
+    Body: {"token": "<fcm-token>"}
+    """
+    booking, error = _get_booking_from_request(request)
+    if error:
+        return error
+
+    token = (request.data.get('token') or '').strip()
+    if not token:
+        return Response(
+            {'error': 'token is required'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    DeviceToken.objects.filter(token=token, booking=booking).update(is_active=False)
+    return Response({'status': 'unregistered'})

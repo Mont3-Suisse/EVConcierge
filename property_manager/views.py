@@ -754,7 +754,21 @@ def notification_send(request, pk):
             notif.is_sent = True
             notif.sent_at = timezone.now()
             notif.save(update_fields=["is_sent", "sent_at"])
-            messages.success(request, f"Notification '{notif.title}' sent.")
+
+            from .push_service import send_push_notification
+            fcm_result = send_push_notification(notif)
+            if fcm_result.get("skipped"):
+                messages.success(
+                    request,
+                    f"Notification '{notif.title}' saved. "
+                    f"FCM is not configured — guests will see it on next app refresh.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Notification '{notif.title}' sent to "
+                    f"{fcm_result['sent']} device(s).",
+                )
     next_url = request.POST.get("next", "")
     if next_url.startswith("/") and not next_url.startswith("//"):
         return redirect(next_url)
