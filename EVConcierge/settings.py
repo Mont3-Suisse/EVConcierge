@@ -154,5 +154,5 @@ REST_FRAMEWORK = {
 # Provide either a file path to the service-account JSON, OR the JSON inline.
 # If neither is set, FCM delivery is skipped (the notification is still stored
 # and the Flutter app's polling fallback will pick it up).
-FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', '/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/evconcierge-900b1-firebase-adminsdk-fbsvc-3e921ba084.json')
+FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', '/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/evconcierge-42360-1c0f4049372f.json')
 FIREBASE_CREDENTIALS_JSON = os.environ.get('FIREBASE_CREDENTIALS_JSON', '')
