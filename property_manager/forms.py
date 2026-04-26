@@ -162,6 +162,7 @@ class PushNotificationForm(forms.ModelForm):
         fields = [
             "property", "title", "body",
             "target_type", "target_booking", "linked_item",
+            "linked_offerings",
             "scheduled_at", "recurring_rule",
         ]
         widgets = {
@@ -171,6 +172,7 @@ class PushNotificationForm(forms.ModelForm):
             "target_type": forms.Select(attrs={"class": "form-input"}),
             "target_booking": forms.Select(attrs={"class": "form-input"}),
             "linked_item": forms.Select(attrs={"class": "form-input"}),
+            "linked_offerings": forms.CheckboxSelectMultiple(),
             "scheduled_at": forms.DateTimeInput(attrs={"class": "form-input", "type": "datetime-local"}),
             "recurring_rule": forms.TextInput(attrs={"class": "form-input", "placeholder": "e.g. every Tuesday at 17:00"}),
         }
@@ -182,8 +184,13 @@ class PushNotificationForm(forms.ModelForm):
             self.fields["property"].queryset = properties
             self.fields["target_booking"].queryset = Booking.objects.filter(property__in=properties)
             self.fields["linked_item"].queryset = ServiceItem.objects.filter(category__property__in=properties)
+            self.fields["linked_offerings"].queryset = (
+                OwnerOffering.objects.filter(owner=user, is_active=True)
+                .order_by("section", "order", "name")
+            )
         self.fields["target_booking"].required = False
         self.fields["linked_item"].required = False
+        self.fields["linked_offerings"].required = False
         self.fields["scheduled_at"].required = False
 
 

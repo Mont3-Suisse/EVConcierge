@@ -39,9 +39,45 @@
         </div>
 
         <div class="form-group">
-            <label>Link to Item (optional)</label>
+            <label>Link to Item — legacy (optional)</label>
             {{ form.linked_item }}
-            <div class="form-help">Deep-link to this service item when guest taps the notification</div>
+            <div class="form-help">Legacy single-item deep-link. Prefer the multi-product picker below.</div>
+        </div>
+
+        <div class="form-group">
+            <label>Linked Products (optional)</label>
+            <div class="form-help" style="margin-bottom:8px;">
+                Pick one or more products from any section. They'll appear as tappable cards in the guest app's notification detail.
+            </div>
+            <div class="offerings-picker"
+                 style="border:1px solid var(--border, #2a2a3e); border-radius:8px; padding:12px; max-height:340px; overflow:auto; background:rgba(255,255,255,0.02);">
+                {% regroup form.linked_offerings.field.queryset by get_section_display as offerings_by_section %}
+                {% if offerings_by_section %}
+                    {% for group in offerings_by_section %}
+                        <div style="margin-bottom:14px;">
+                            <div style="font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted, #888); margin-bottom:6px;">
+                                {{ group.grouper }}
+                            </div>
+                            {% for offering in group.list %}
+                                <label style="display:flex; align-items:center; gap:10px; padding:6px 4px; cursor:pointer; border-radius:6px;">
+                                    <input type="checkbox"
+                                           name="{{ form.linked_offerings.html_name }}"
+                                           value="{{ offering.pk }}"
+                                           {% for v in form.linked_offerings.value %}{% if v|stringformat:'s' == offering.pk|stringformat:'s' %}checked{% endif %}{% endfor %}>
+                                    <span style="flex:1;">
+                                        <span style="font-weight:500;">{{ offering.name }}</span>
+                                        {% if offering.price %}<span style="color:var(--gold, #c9a96e); margin-left:8px;">€{{ offering.price }}</span>{% endif %}
+                                    </span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="font-size:13px; color:var(--text-muted, #888);">
+                        No products yet. Create offerings under your Sections (Food &amp; Drinks, Experiences, etc.) first.
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="form-row">

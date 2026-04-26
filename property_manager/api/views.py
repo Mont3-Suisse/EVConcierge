@@ -401,9 +401,9 @@ def booking_notifications(request, pk):
         target_booking=booking,
         is_sent=True,
     )
-    notifications = notifications.order_by('-sent_at')
+    notifications = notifications.order_by('-sent_at').prefetch_related('linked_offerings')
     return Response(
-        NotificationSerializer(notifications, many=True).data
+        NotificationSerializer(notifications, many=True, context={'request': request}).data
     )
 
 
