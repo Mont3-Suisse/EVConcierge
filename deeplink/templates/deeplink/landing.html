@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Open EV Concierge</title>
+  {% if platform == 'ios' and ios_app_id %}
+  <meta name="apple-itunes-app" content="app-id={{ ios_app_id }}, app-argument={{ universal_link }}">
+  {% endif %}
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg, #0b1020 0%, #111a35 100%);
+      color: #e8ecf3;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 420px; width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-align: center;
+    }
+    h1 { font-size: 22px; margin: 16px 0 4px; }
+    p  { font-size: 14px; color: #a8b0c2; line-height: 1.55; margin: 0 0 20px; }
+    .code {
+      display: inline-block;
+      letter-spacing: 2px; font-weight: 600;
+      background: rgba(255,255,255,0.06);
+      padding: 8px 14px; border-radius: 8px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: inline-block; width: 100%;
+      padding: 14px 18px; border-radius: 12px;
+      background: linear-gradient(135deg, #4f7cff, #6f5bff);
+      color: white; font-weight: 600; font-size: 15px;
+      text-decoration: none;
+      border: none; cursor: pointer;
+    }
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #c9d2e3;
+      margin-top: 12px;
+    }
+    .logo {
+      width: 56px; height: 56px; margin: 0 auto 8px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #4f7cff, #6f5bff);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 22px;
+    }
+    .qr-wrap { background: white; padding: 16px; border-radius: 12px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">EV</div>
+    <h1>Open EV Concierge</h1>
+    <p>We&rsquo;ll open the app and sign you in with your booking code.</p>
+    <div class="code">{{ code }}</div>
+
+    {% if platform == 'android' %}
+      <a class="btn" id="open-app" href="{{ intent_url }}">Open in App</a>
+      <a class="btn secondary" href="{{ play_store_url }}">Get it on Google Play</a>
+      <script>
+        // Auto-trigger the intent. If the app is missing, Chrome's
+        // browser_fallback_url already routes to Play Store with the
+        // referrer, so we don't need a JS timer fallback here.
+        var intentUrl = "{{ intent_url|escapejs }}";
+        setTimeout(function () { window.location.href = intentUrl; }, 50);
+      </script>
+    {% elif platform == 'ios' %}
+      <a class="btn" id="open-app" href="{{ scheme_url }}">Open in App</a>
+      <a class="btn secondary" href="{{ app_store_url }}">Get it on the App Store</a>
+      <script>
+        // The page itself is the Universal Link target — if the app is
+        // installed iOS opens it before this script runs. Otherwise we try
+        // the custom scheme; if the app still doesn't open within ~1.5s,
+        // hand off to the App Store. The smart-app-banner above also gives
+        // iOS the deferred argument for first-launch auto-login.
+        var appStore = "{{ app_store_url|escapejs }}";
+        var schemeUrl = "{{ scheme_url|escapejs }}";
+        var fellBack = false;
+        var timer = setTimeout(function () {
+          fellBack = true;
+          window.location.href = appStore;
+        }, 1500);
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) { clearTimeout(timer); }
+        });
+        setTimeout(function () {
+          if (!fellBack) { window.location.href = schemeUrl; }
+        }, 100);
+      </script>
+    {% else %}
+      <p>Open this link from your phone, or scan the QR code below.</p>
+      <div class="qr-wrap">
+        <img alt="QR code"
+             src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ universal_link|urlencode }}">
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
