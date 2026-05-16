@@ -41,5 +41,5 @@ build/
 .env.production
 
 # Firebase Admin SDK service-account keys
-*-firebase-adminsdk-*.json
-evconcierge-42360-*.json
+*-firebase-adminsdk*.json
+evconcierge-*.json
