@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'property_manager',
+    'deeplink',
 ]
 
 MIDDLEWARE = [
@@ -119,10 +120,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Media files (uploads: property photos, guest documents, service images)
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
@@ -154,5 +155,22 @@ REST_FRAMEWORK = {
 # Provide either a file path to the service-account JSON, OR the JSON inline.
 # If neither is set, FCM delivery is skipped (the notification is still stored
 # and the Flutter app's polling fallback will pick it up).
-FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', '/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/evconcierge-900b1-firebase-adminsdk-fbsvc-3e921ba084.json')
+FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', '/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/evconcierge-app-firebase-adminsdk.json')
 FIREBASE_CREDENTIALS_JSON = os.environ.get('FIREBASE_CREDENTIALS_JSON', '')
+
+# Deferred deep-link bridge.
+# These power the /l/<code>/ landing page and the .well-known association
+# files. They are intentionally settings-driven so the same code works in
+# dev (where Universal/App Links cannot be verified anyway) and in prod
+# without code changes — populate the env vars at deploy time.
+DEEPLINK_DOMAIN = os.environ.get('DEEPLINK_DOMAIN', '')
+DEEPLINK_SCHEME = os.environ.get('DEEPLINK_SCHEME', 'evconcierge')
+DEEPLINK_SCHEME_HOST = os.environ.get('DEEPLINK_SCHEME_HOST', 'login')
+DEEPLINK_IOS_APP_ID = os.environ.get('DEEPLINK_IOS_APP_ID', '')
+DEEPLINK_IOS_TEAM_ID = os.environ.get('DEEPLINK_IOS_TEAM_ID', '')
+DEEPLINK_IOS_BUNDLE_ID = os.environ.get('DEEPLINK_IOS_BUNDLE_ID', 'com.evconcierge.evConcierge')
+DEEPLINK_ANDROID_PACKAGE = os.environ.get('DEEPLINK_ANDROID_PACKAGE', 'com.evconcierge.ev_concierge')
+# Comma-separated list of release/upload cert SHA-256 fingerprints.
+DEEPLINK_ANDROID_CERT_SHA256 = [
+    f.strip() for f in os.environ.get('DEEPLINK_ANDROID_CERT_SHA256', '').split(',') if f.strip()
+]

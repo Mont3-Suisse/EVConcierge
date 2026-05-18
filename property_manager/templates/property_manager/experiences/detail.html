@@ -16,6 +16,25 @@
     </div>
 </div>
 
+{% with experience.images.all as exp_images %}
+{% if exp_images %}
+<div class="card mb-6">
+    <div class="card-header"><h3>Photos</h3></div>
+    <div class="property-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">
+        {% for img in exp_images %}
+            {% if img.image %}
+            <a href="{{ img.image.url }}" target="_blank" style="display:block;aspect-ratio:4/3;overflow:hidden;border-radius:6px;">
+                <img src="{{ img.image.url }}" alt="{{ img.caption|default:experience.title }}"
+                     loading="lazy"
+                     style="width:100%;height:100%;object-fit:cover;display:block;">
+            </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+
 <div class="card mb-6">
     <div class="card-header">
         <h3>Experience Details</h3>

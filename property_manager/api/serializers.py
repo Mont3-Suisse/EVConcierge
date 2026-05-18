@@ -8,6 +8,7 @@ from ..models import (
     Category, ServiceItem, Order, OrderItem,
     Instruction, InstructionImage, Special,
     ChatConversation, ChatMessage, PushNotification,
+    OwnerOffering,
 )
 
 
@@ -160,11 +161,44 @@ class ChatConversationSerializer(serializers.ModelSerializer):
                   'created_at', 'messages']
 
 
+class LinkedProductSerializer(serializers.ModelSerializer):
+    """Compact representation of a product (OwnerOffering) embedded in a notification."""
+    photo_url = serializers.SerializerMethodField()
+    section_label = serializers.CharField(source='get_section_display', read_only=True)
+    price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OwnerOffering
+        fields = ['id', 'name', 'description', 'photo_url', 'price',
+                  'section', 'section_label']
+
+    def get_photo_url(self, obj):
+        if obj.photo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.photo.url)
+            return obj.photo.url
+        return None
+
+    def get_price(self, obj):
+        return float(obj.price) if obj.price is not None else None
+
+
 class NotificationSerializer(serializers.ModelSerializer):
+    linked_products = serializers.SerializerMethodField()
+
     class Meta:
         model = PushNotification
-        fields = ['id', 'title', 'body', 'linked_item', 'scheduled_at',
-                  'is_sent', 'sent_at', 'created_at']
+        fields = ['id', 'title', 'body', 'linked_item', 'linked_products',
+                  'scheduled_at', 'is_sent', 'sent_at', 'created_at']
+
+    def get_linked_products(self, obj):
+        offerings = obj.linked_offerings.filter(is_active=True).order_by(
+            'section', 'order', 'name'
+        )
+        return LinkedProductSerializer(
+            offerings, many=True, context=self.context
+        ).data
 
 
 class OrderCreateSerializer(serializers.Serializer):

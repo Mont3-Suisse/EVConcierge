@@ -28,7 +28,15 @@
                 {% for inst in instructions %}
                 <tr>
                     <td class="text-muted">{{ inst.order }}</td>
-                    <td><strong>{{ inst.title }}</strong></td>
+                    <td>
+                        {% with inst.images.all|first as thumb %}
+                            {% if thumb and thumb.image %}
+                            <img src="{{ thumb.image.url }}" alt="" loading="lazy"
+                                 style="width:48px;height:48px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:8px;">
+                            {% endif %}
+                        {% endwith %}
+                        <strong>{{ inst.title }}</strong>
+                    </td>
                     <td><span class="badge badge-draft">{{ inst.get_instruction_type_display }}</span></td>
                     <td class="text-sm text-muted">{{ inst.updated_at|timesince }} ago</td>
                     <td>

@@ -7,6 +7,7 @@ Authentication is via booking access_code (UUID) passed as X-Access-Code header.
 import datetime
 
 from django.conf import settings as django_settings
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status
@@ -83,7 +84,9 @@ def _get_booking_from_request(request):
             access_code=access_code,
             is_active=True,
         )
-    except Booking.DoesNotExist:
+    except (Booking.DoesNotExist, ValidationError):
+        # ValidationError fires when the supplied string can't be coerced
+        # to a UUID — treat it the same as "no such booking".
         return None, Response(
             {'error': 'Invalid or expired access code'},
             status=status.HTTP_401_UNAUTHORIZED,
@@ -115,7 +118,9 @@ def validate_access_code(request):
             access_code=code,
             is_active=True,
         )
-    except Booking.DoesNotExist:
+    except (Booking.DoesNotExist, ValidationError):
+        # ValidationError fires when the supplied string can't be coerced
+        # to a UUID — return 404 instead of bubbling a 500.
         return Response(
             {'error': 'Invalid access code'},
             status=status.HTTP_404_NOT_FOUND,
@@ -401,9 +406,9 @@ def booking_notifications(request, pk):
         target_booking=booking,
         is_sent=True,
     )
-    notifications = notifications.order_by('-sent_at')
+    notifications = notifications.order_by('-sent_at').prefetch_related('linked_offerings')
     return Response(
-        NotificationSerializer(notifications, many=True).data
+        NotificationSerializer(notifications, many=True, context={'request': request}).data
     )
 
 

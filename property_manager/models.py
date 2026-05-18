@@ -868,6 +868,12 @@ class PushNotification(models.Model):
     target_type = models.CharField(max_length=20, choices=NOTIFICATION_TARGET_CHOICES, default="all_guests")
     target_booking = models.ForeignKey(Booking, on_delete=models.SET_NULL, null=True, blank=True, related_name="targeted_notifications")
     linked_item = models.ForeignKey(ServiceItem, on_delete=models.SET_NULL, null=True, blank=True, related_name="notifications")
+    linked_offerings = models.ManyToManyField(
+        "OwnerOffering",
+        blank=True,
+        related_name="notifications",
+        help_text="Products from any section (Food & Drinks, Experiences, Discover, Wellness, Transport, Add-ons, Today's Specials) referenced by this notification.",
+    )
     scheduled_at = models.DateTimeField(null=True, blank=True)
     recurring_rule = models.CharField(max_length=200, blank=True)
     is_sent = models.BooleanField(default=False)
