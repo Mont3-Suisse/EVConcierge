@@ -30,6 +30,7 @@ from .models import (
     Order,
     OrderItem,
     OwnerOffering,
+    OwnerOfferingImage,
     PromoCode,
     PromoCodeUsage,
     Property,
@@ -391,6 +392,12 @@ admin.site.register(InstructionTranslation)
 admin.site.register(ExperienceTranslation)
 admin.site.register(DailyView)
 
+class OwnerOfferingImageInline(admin.TabularInline):
+    model = OwnerOfferingImage
+    extra = 1
+    fields = ('image', 'caption', 'order')
+
+
 @admin.register(OwnerOffering)
 class OwnerOfferingAdmin(admin.ModelAdmin):
     """
@@ -404,6 +411,7 @@ class OwnerOfferingAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
     search_fields = ('name', 'description')
     filter_horizontal = ('properties',)
+    inlines = [OwnerOfferingImageInline]
     fieldsets = (
         (None, {
             'fields': ('owner', 'section', 'name', 'description', 'photo',

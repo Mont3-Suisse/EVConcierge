@@ -1424,3 +1424,25 @@ class OwnerOffering(models.Model):
 
     def __str__(self):
         return f"[{self.get_section_display()}] {self.name}"
+
+
+class OwnerOfferingImage(models.Model):
+    """Additional gallery image attached to an OwnerOffering. The offering's
+    own `photo` field still acts as the cover; these are extra photos shown
+    after it."""
+
+    offering = models.ForeignKey(
+        OwnerOffering,
+        on_delete=models.CASCADE,
+        related_name='images',
+    )
+    image = models.ImageField(upload_to='owner_offerings/')
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"Image for {self.offering.name}"
