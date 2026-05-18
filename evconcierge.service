@@ -18,9 +18,13 @@
 #        sudo journalctl -u evconcierge -f
 #
 # NOTES
-#   - The service binds to 127.0.0.1:8000 by default; put nginx (or another
-#     reverse proxy) in front of it for public traffic. To expose directly,
-#     change --bind to 0.0.0.0:8000.
+#   - Gunicorn binds to a Unix socket at /run/evconcierge/evconcierge.sock.
+#     RuntimeDirectory= makes systemd create /run/evconcierge/ on start (owned
+#     by <APP_USER>:<APP_GROUP>, mode 0750) and remove it on stop.
+#   - Point your reverse proxy at the socket. Example nginx upstream:
+#       upstream evconcierge { server unix:/run/evconcierge/evconcierge.sock; }
+#     Make sure the nginx user (e.g. www-data) is in <APP_GROUP> so it can
+#     read the socket, or relax RuntimeDirectoryMode (e.g. 0755).
 #   - Adjust --workers based on CPU cores (a common rule: 2 * cores + 1).
 #   - Logs go to journald via stdout/stderr (--access-logfile - / --error-logfile -).
 
@@ -34,9 +38,11 @@ User=<APP_USER>
 Group=<APP_GROUP>
 WorkingDirectory=<APP_DIR>
 Environment="PATH=<APP_DIR>/.venv/bin"
+RuntimeDirectory=evconcierge
+RuntimeDirectoryMode=0750
 ExecStart=<APP_DIR>/.venv/bin/gunicorn \
     --workers 3 \
-    --bind 127.0.0.1:8000 \
+    --bind unix:/run/evconcierge/evconcierge.sock \
     --access-logfile - \
     --error-logfile - \
     EVConcierge.wsgi:application
