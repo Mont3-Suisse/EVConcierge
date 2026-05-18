@@ -1,14 +1,40 @@
+# systemd unit for running the EVConcierge Django app with Gunicorn.
+#
+# SETUP
+#   1. Replace the placeholders below:
+#        <APP_USER>   -> the OS user that will run the service (e.g. ubuntu, www-data)
+#        <APP_GROUP>  -> the OS group for that user
+#        <APP_DIR>    -> absolute path to the Django project (the folder containing manage.py)
+#      <APP_DIR> must contain a `.venv/` virtualenv with gunicorn installed
+#      (created via `uv sync` from the project root).
+#
+#   2. Install the unit and enable it:
+#        sudo cp <APP_DIR>/evconcierge.service /etc/systemd/system/evconcierge.service
+#        sudo systemctl daemon-reload
+#        sudo systemctl enable --now evconcierge
+#
+#   3. Inspect:
+#        sudo systemctl status evconcierge
+#        sudo journalctl -u evconcierge -f
+#
+# NOTES
+#   - The service binds to 127.0.0.1:8000 by default; put nginx (or another
+#     reverse proxy) in front of it for public traffic. To expose directly,
+#     change --bind to 0.0.0.0:8000.
+#   - Adjust --workers based on CPU cores (a common rule: 2 * cores + 1).
+#   - Logs go to journald via stdout/stderr (--access-logfile - / --error-logfile -).
+
 [Unit]
 Description=EVConcierge Django app (Gunicorn)
 After=network.target
 
 [Service]
 Type=simple
-User=riccardo
-Group=riccardo
-WorkingDirectory=/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge
-Environment="PATH=/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/.venv/bin"
-ExecStart=/home/riccardo/Scrivania/EVConciergeWorkspace/EVConcierge/.venv/bin/gunicorn \
+User=<APP_USER>
+Group=<APP_GROUP>
+WorkingDirectory=<APP_DIR>
+Environment="PATH=<APP_DIR>/.venv/bin"
+ExecStart=<APP_DIR>/.venv/bin/gunicorn \
     --workers 3 \
     --bind 127.0.0.1:8000 \
     --access-logfile - \
