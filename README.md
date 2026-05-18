@@ -169,3 +169,67 @@ uv.lock                         # Locked dependency versions
 - **Django 6.x** — Web framework
 - **Pillow** — Image handling (property photos, guest documents)
 - **SQLite** — Database (development)
+
+---
+
+## Production deployment (Gunicorn + systemd + nginx)
+
+The repo ships a sample systemd unit at `evconcierge.service` that runs the
+app under Gunicorn and binds to a Unix socket at
+`/run/evconcierge/evconcierge.sock` (systemd creates the directory via
+`RuntimeDirectory=`). See the comments at the top of that file for how to fill
+in `<APP_USER>`, `<APP_GROUP>`, `<APP_DIR>` and install the unit.
+
+Below is a minimal nginx site that proxies HTTP traffic to that socket and
+serves `STATIC_ROOT` / `MEDIA_ROOT` directly. Drop it in
+`/etc/nginx/sites-available/evconcierge`, then symlink into
+`/etc/nginx/sites-enabled/` and reload nginx.
+
+```nginx
+upstream evconcierge {
+    server unix:/run/evconcierge/evconcierge.sock;
+}
+
+server {
+    listen 80;
+    server_name example.com;  # replace with your domain
+
+    client_max_body_size 25M;  # raise if guests upload large documents/photos
+
+    # Adjust these paths to match settings.py (STATIC_ROOT / MEDIA_ROOT)
+    location /static/ {
+        alias <APP_DIR>/staticfiles/;
+        access_log off;
+        expires 30d;
+    }
+
+    location /media/ {
+        alias <APP_DIR>/media/;
+        access_log off;
+        expires 7d;
+    }
+
+    location / {
+        proxy_pass http://evconcierge;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+    }
+}
+```
+
+Notes:
+
+- The nginx worker user (commonly `www-data` on Debian/Ubuntu, `nginx` on
+  RHEL/Fedora) must be a member of `<APP_GROUP>` so it can read the socket
+  under `/run/evconcierge/` (mode `0750`). Add it with
+  `sudo usermod -aG <APP_GROUP> www-data` and reload nginx.
+- Run `uv run python manage.py collectstatic` so `STATIC_ROOT` exists before
+  nginx tries to serve `/static/`.
+- For HTTPS, use certbot (`sudo certbot --nginx -d example.com`) — it will
+  rewrite this server block to listen on 443 with the issued certificate.
+- In `settings.py`, add the public hostname to `ALLOWED_HOSTS` and set
+  `SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")` once TLS is
+  terminated at nginx.
