@@ -48,6 +48,17 @@ def _absolute_photo_url(request, image_field):
         return None
 
 
+def _gallery_urls(request, offering):
+    urls = []
+    for img in offering.images.all():
+        if not img.image:
+            continue
+        url = _absolute_photo_url(request, img.image)
+        if url:
+            urls.append(url)
+    return urls
+
+
 def _serialize_offering(offering, request, category_id):
     return {
         'id': offering.id,
@@ -55,6 +66,7 @@ def _serialize_offering(offering, request, category_id):
         'name': offering.name,
         'description': offering.description,
         'photo_url': _absolute_photo_url(request, offering.photo),
+        'gallery_urls': _gallery_urls(request, offering),
         'price': float(offering.price) if offering.price is not None else 0,
         'is_available': offering.is_active,
         'is_special': offering.section == OwnerOffering.SECTION_SPECIALS,
@@ -178,7 +190,7 @@ def property_categories(request, pk):
     offerings = OwnerOffering.objects.filter(
         properties__id=pk,
         is_active=True,
-    ).order_by('order', 'name')
+    ).prefetch_related('images').order_by('order', 'name')
 
     by_section = {}
     for o in offerings:
@@ -224,7 +236,7 @@ def property_specials(request, pk):
         Q(start_date__isnull=True) | Q(start_date__lte=today)
     ).filter(
         Q(end_date__isnull=True) | Q(end_date__gte=today)
-    ).order_by('order', 'name')
+    ).prefetch_related('images').order_by('order', 'name')
 
     far_future = today + datetime.timedelta(days=365)
     result = []
@@ -237,6 +249,7 @@ def property_specials(request, pk):
             'item_description': o.description,
             'price': float(o.price) if o.price is not None else 0,
             'photo_url': _absolute_photo_url(request, o.photo),
+            'gallery_urls': _gallery_urls(request, o),
             'subtitle': None,
             'start_date': (o.start_date or today).isoformat(),
             'end_date': (o.end_date or far_future).isoformat(),
@@ -406,7 +419,9 @@ def booking_notifications(request, pk):
         target_booking=booking,
         is_sent=True,
     )
-    notifications = notifications.order_by('-sent_at').prefetch_related('linked_offerings')
+    notifications = notifications.order_by('-sent_at').prefetch_related(
+        'linked_offerings__images'
+    )
     return Response(
         NotificationSerializer(notifications, many=True, context={'request': request}).data
     )

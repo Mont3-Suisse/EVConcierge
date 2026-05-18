@@ -164,13 +164,14 @@ class ChatConversationSerializer(serializers.ModelSerializer):
 class LinkedProductSerializer(serializers.ModelSerializer):
     """Compact representation of a product (OwnerOffering) embedded in a notification."""
     photo_url = serializers.SerializerMethodField()
+    gallery_urls = serializers.SerializerMethodField()
     section_label = serializers.CharField(source='get_section_display', read_only=True)
     price = serializers.SerializerMethodField()
 
     class Meta:
         model = OwnerOffering
-        fields = ['id', 'name', 'description', 'photo_url', 'price',
-                  'section', 'section_label']
+        fields = ['id', 'name', 'description', 'photo_url', 'gallery_urls',
+                  'price', 'section', 'section_label']
 
     def get_photo_url(self, obj):
         if obj.photo:
@@ -179,6 +180,19 @@ class LinkedProductSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.photo.url)
             return obj.photo.url
         return None
+
+    def get_gallery_urls(self, obj):
+        request = self.context.get('request')
+        urls = []
+        for img in obj.images.all():
+            if not img.image:
+                continue
+            try:
+                url = request.build_absolute_uri(img.image.url) if request else img.image.url
+            except Exception:
+                continue
+            urls.append(url)
+        return urls
 
     def get_price(self, obj):
         return float(obj.price) if obj.price is not None else None
